@@ -1,0 +1,30 @@
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Runtime
+addon/yipay/runtime/
+runtime/
+*.log
+
+# Dependencies
+vendor/
+node_modules/
+
+# Config
+.env
+.env.local
+
+# Temporary files
+temp/
+tmp/
+cache/
