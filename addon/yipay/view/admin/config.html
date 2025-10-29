@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>易支付配置</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/static/admin/layui/css/layui.css">
+    <style>
+        .config-container {
+            padding: 20px;
+            background: #fff;
+        }
+        .statistics-box {
+            padding: 15px;
+            margin-bottom: 20px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        .statistics-item {
+            display: inline-block;
+            margin-right: 30px;
+            padding: 10px 20px;
+            background: #fff;
+            border-radius: 4px;
+        }
+        .statistics-item .label {
+            color: #999;
+            font-size: 12px;
+        }
+        .statistics-item .value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .layui-form-item {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="config-container">
+    <h2>易支付配置</h2>
+
+    <!-- 统计信息 -->
+    <div class="statistics-box">
+        <div class="statistics-item">
+            <div class="label">订单总数</div>
+            <div class="value">{$statistics.total_count|default=0}</div>
+        </div>
+        <div class="statistics-item">
+            <div class="label">成功订单</div>
+            <div class="value">{$statistics.success_count|default=0}</div>
+        </div>
+        <div class="statistics-item">
+            <div class="label">交易金额</div>
+            <div class="value">¥{$statistics.total_money|default=0}</div>
+        </div>
+    </div>
+
+    <!-- 配置表单 -->
+    <form class="layui-form" id="configForm" lay-filter="configForm">
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span style="color:red;">*</span>API地址</label>
+            <div class="layui-input-block">
+                <input type="text" name="api_url" value="{$config.api_url|default=''}" 
+                       placeholder="请输入易支付API地址，例如：http://pay.example.com" 
+                       class="layui-input" required lay-verify="required">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span style="color:red;">*</span>商户号PID</label>
+            <div class="layui-input-block">
+                <input type="text" name="pid" value="{$config.pid|default=''}" 
+                       placeholder="请输入商户号" 
+                       class="layui-input" required lay-verify="required">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span style="color:red;">*</span>商户密钥KEY</label>
+            <div class="layui-input-block">
+                <input type="password" name="key" value="{$config.key|default=''}" 
+                       placeholder="请输入商户密钥" 
+                       class="layui-input" required lay-verify="required">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">启用状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="status" value="1" 
+                       lay-skin="switch" lay-text="开启|关闭" 
+                       {$config.status == 1 ? 'checked' : ''}>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">支持的支付方式</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="support_alipay" value="1" 
+                       title="支付宝" 
+                       {in_array('alipay', $config.support_type|default=[]) ? 'checked' : ''}>
+                <input type="checkbox" name="support_wxpay" value="1" 
+                       title="微信支付" 
+                       {in_array('wxpay', $config.support_type|default=[]) ? 'checked' : ''}>
+                <input type="checkbox" name="support_qqpay" value="1" 
+                       title="QQ钱包" 
+                       {in_array('qqpay', $config.support_type|default=[]) ? 'checked' : ''}>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button type="button" class="layui-btn" id="testBtn">测试连接</button>
+                <button type="submit" class="layui-btn layui-btn-normal" lay-submit lay-filter="submit">保存配置</button>
+            </div>
+        </div>
+    </form>
+
+    <hr class="layui-border-green">
+
+    <!-- 支付日志列表 -->
+    <h3>支付日志</h3>
+
+    <div class="layui-form">
+        <div class="layui-inline">
+            <input type="text" name="search_trade_no" placeholder="订单号" class="layui-input">
+        </div>
+        <div class="layui-inline">
+            <select name="search_pay_type">
+                <option value="">全部支付方式</option>
+                <option value="alipay">支付宝</option>
+                <option value="wxpay">微信支付</option>
+                <option value="qqpay">QQ钱包</option>
+            </select>
+        </div>
+        <div class="layui-inline">
+            <select name="search_status">
+                <option value="">全部状态</option>
+                <option value="0">待支付</option>
+                <option value="1">已支付</option>
+                <option value="2">已退款</option>
+            </select>
+        </div>
+        <div class="layui-inline">
+            <button type="button" class="layui-btn" id="searchBtn">搜索</button>
+        </div>
+    </div>
+
+    <table class="layui-hide" id="logTable" lay-filter="logTable"></table>
+</div>
+
+<script src="/static/admin/layui/layui.js"></script>
+<script>
+layui.use(['form', 'table', 'layer'], function(){
+    var form = layui.form;
+    var table = layui.table;
+    var layer = layui.layer;
+
+    // 渲染表格
+    table.render({
+        elem: '#logTable',
+        url: '/addon/yipay/admin/config/logList',
+        page: true,
+        limit: 20,
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'trade_no', title: '订单号', width: 200},
+            {field: 'pay_type', title: '支付方式', width: 120, templet: function(d){
+                var typeMap = {
+                    'alipay': '支付宝',
+                    'wxpay': '微信支付',
+                    'qqpay': 'QQ钱包'
+                };
+                return typeMap[d.pay_type] || d.pay_type;
+            }},
+            {field: 'money', title: '金额', width: 120},
+            {field: 'status', title: '状态', width: 100, templet: function(d){
+                var statusMap = {
+                    0: '<span class="layui-badge layui-bg-gray">待支付</span>',
+                    1: '<span class="layui-badge layui-bg-green">已支付</span>',
+                    2: '<span class="layui-badge layui-bg-orange">已退款</span>'
+                };
+                return statusMap[d.status] || '未知';
+            }},
+            {field: 'create_time', title: '创建时间', width: 180, templet: function(d){
+                return formatTime(d.create_time);
+            }},
+            {field: 'pay_time', title: '支付时间', width: 180, templet: function(d){
+                return d.pay_time > 0 ? formatTime(d.pay_time) : '-';
+            }}
+        ]]
+    });
+
+    // 搜索
+    $('#searchBtn').on('click', function(){
+        table.reload('logTable', {
+            where: {
+                trade_no: $('input[name="search_trade_no"]').val(),
+                pay_type: $('select[name="search_pay_type"]').val(),
+                status: $('select[name="search_status"]').val()
+            },
+            page: {
+                curr: 1
+            }
+        });
+    });
+
+    // 提交表单
+    form.on('submit(submit)', function(data){
+        $.ajax({
+            url: '/addon/yipay/admin/config/save',
+            type: 'POST',
+            data: data.field,
+            dataType: 'json',
+            success: function(res){
+                if(res.code == 1){
+                    layer.msg('保存成功', {icon: 1});
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            }
+        });
+        return false;
+    });
+
+    // 测试连接
+    $('#testBtn').on('click', function(){
+        var apiUrl = $('input[name="api_url"]').val();
+        var pid = $('input[name="pid"]').val();
+        var key = $('input[name="key"]').val();
+
+        if(!apiUrl || !pid || !key){
+            layer.msg('请先填写完整配置信息', {icon: 2});
+            return;
+        }
+
+        var loading = layer.load(1, {shade: 0.3});
+
+        $.ajax({
+            url: '/addon/yipay/admin/config/test',
+            type: 'POST',
+            data: {
+                api_url: apiUrl,
+                pid: pid,
+                key: key
+            },
+            dataType: 'json',
+            success: function(res){
+                layer.close(loading);
+                if(res.code == 1){
+                    layer.msg('连接成功', {icon: 1});
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            }
+        });
+    });
+
+    // 格式化时间
+    function formatTime(timestamp){
+        if(!timestamp) return '-';
+        var date = new Date(timestamp * 1000);
+        var Y = date.getFullYear();
+        var M = date.getMonth() + 1;
+        var D = date.getDate();
+        var h = date.getHours();
+        var m = date.getMinutes();
+        var s = date.getSeconds();
+        M = M < 10 ? '0' + M : M;
+        D = D < 10 ? '0' + D : D;
+        h = h < 10 ? '0' + h : h;
+        m = m < 10 ? '0' + m : m;
+        s = s < 10 ? '0' + s : s;
+        return Y + '-' + M + '-' + D + ' ' + h + ':' + m + ':' + s;
+    }
+});
+</script>
+
+</body>
+</html>
