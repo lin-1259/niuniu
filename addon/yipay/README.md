@@ -20,6 +20,7 @@
 ```
 addon/yipay/
 ├── config.php                    # 插件配置文件
+├── info.php                      # 插件信息定义
 ├── install.sql                   # 安装SQL（创建支付日志表）
 ├── uninstall.sql                 # 卸载SQL
 ├── Yipay.php                     # 插件主类（实现支付接口）

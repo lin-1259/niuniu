@@ -312,4 +312,53 @@ class Yipay
             'msg' => $msg,
         ];
     }
+
+    /**
+     * 插件安装
+     * @return array
+     */
+    public function install()
+    {
+        return true;
+    }
+
+    /**
+     * 插件卸载
+     * @return bool
+     */
+    public function uninstall()
+    {
+        return true;
+    }
+
+    /**
+     * 启用插件
+     * @return bool
+     */
+    public function enable()
+    {
+        return true;
+    }
+
+    /**
+     * 禁用插件
+     * @return bool
+     */
+    public function disable()
+    {
+        return true;
+    }
+
+    /**
+     * 获取插件信息
+     * @return array
+     */
+    public function getInfo()
+    {
+        $infoFile = __DIR__ . '/info.php';
+        if (file_exists($infoFile)) {
+            return include $infoFile;
+        }
+        return [];
+    }
 }

@@ -134,6 +134,7 @@ echo "------------------------------------\n";
 
 $requiredFiles = [
     'config.php',
+    'info.php',
     'install.sql',
     'uninstall.sql',
     'Yipay.php',
