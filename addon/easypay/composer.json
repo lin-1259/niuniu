@@ -1,0 +1,43 @@
+{
+    "name": "niushop/easypay-addon",
+    "description": "Easypay(Dulupay) payment plugin for Niushop V5",
+    "type": "project",
+    "keywords": ["niushop", "payment", "easypay", "dulupay", "alipay", "wechat"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "NiuShop Team",
+            "email": "support@niushop.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "ext-curl": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "addon\\easypay\\": "src/"
+        },
+        "files": [
+            "Easypay.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "addon\\easypay\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

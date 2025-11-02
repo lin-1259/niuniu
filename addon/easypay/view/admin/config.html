@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Easypay支付配置</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-input:focus { border-color: #1890ff; outline: none; }
+        .form-checkbox { margin-right: 10px; }
+        .form-help { color: #666; font-size: 12px; margin-top: 3px; }
+        .btn { background: #1890ff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #40a9ff; }
+        .btn-secondary { background: #f5f5f5; color: #333; }
+        .btn-secondary:hover { background: #e6e6e6; }
+        .required { color: red; }
+        .section { border: 1px solid #e8e8e8; padding: 20px; margin-bottom: 20px; border-radius: 4px; }
+        .section-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333; }
+        .checkbox-group { display: flex; flex-wrap: wrap; }
+        .checkbox-item { margin-right: 20px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Easypay支付配置</h2>
+    
+    <form method="post" action="">
+        <!-- 基本配置 -->
+        <div class="section">
+            <div class="section-title">基本配置</div>
+            
+            <div class="form-group">
+                <label class="form-label">启用状态 <span class="required">*</span></label>
+                <select name="status" class="form-input" style="width: 200px;">
+                    <option value="0" {if $config.status == 0}selected{/if}>禁用</option>
+                    <option value="1" {if $config.status == 1}selected{/if}>启用</option>
+                </select>
+                <div class="form-help">是否启用Easypay支付方式</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">网关地址 <span class="required">*</span></label>
+                <input type="url" name="gateway_url" value="{$config.gateway_url|default=''}" class="form-input" required>
+                <div class="form-help">Easypay支付网关地址，如：https://api.dulupay.com/</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">商户号(PID) <span class="required">*</span></label>
+                <input type="text" name="merchant_id" value="{$config.merchant_id|default=''}" class="form-input" required>
+                <div class="form-help">Easypay商户号，登录商户后台获取</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">商户密钥 <span class="required">*</span></label>
+                <input type="password" name="secret_key" value="{$config.secret_key|default=''}" class="form-input" required>
+                <div class="form-help">Easypay商户密钥，请妥善保管</div>
+            </div>
+        </div>
+
+        <!-- 支付配置 -->
+        <div class="section">
+            <div class="section-title">支付配置</div>
+            
+            <div class="form-group">
+                <label class="form-label">支持的支付方式</label>
+                <div class="checkbox-group">
+                    {foreach $pay_types as $key => $name}
+                    <div class="checkbox-item">
+                        <label>
+                            <input type="checkbox" name="support_type[]" value="{$key}" 
+                                   {if in_array($key, $config.support_type)}checked{/if} class="form-checkbox">
+                            {$name}
+                        </label>
+                    </div>
+                    {/foreach}
+                </div>
+                <div class="form-help">选择支持的支付方式</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">订单标题前缀</label>
+                <input type="text" name="order_prefix" value="{$config.order_prefix|default='ORDER'}" class="form-input">
+                <div class="form-help">支付订单标题的前缀，用于区分支付渠道</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">超时时间（分钟）</label>
+                <input type="number" name="timeout" value="{$config.timeout|default=30}" class="form-input" min="1" max="1440" style="width: 200px;">
+                <div class="form-help">支付订单超时时间，超过此时间订单将自动取消</div>
+            </div>
+        </div>
+
+        <!-- 回调配置 -->
+        <div class="section">
+            <div class="section-title">回调配置</div>
+            
+            <div class="form-group">
+                <label class="form-label">异步回调地址</label>
+                <input type="url" name="notify_url" value="{$config.notify_url|default=''}" class="form-input">
+                <div class="form-help">支付异步通知地址，留空则使用默认地址</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">同步回调地址</label>
+                <input type="url" name="return_url" value="{$config.return_url|default=''}" class="form-input">
+                <div class="form-help">支付同步跳转地址，留空则使用默认地址</div>
+            </div>
+        </div>
+
+        <!-- 高级配置 -->
+        <div class="section">
+            <div class="section-title">高级配置</div>
+            
+            <div class="form-group">
+                <label class="form-label">调试模式</label>
+                <select name="debug" class="form-input" style="width: 200px;">
+                    <option value="0" {if $config.debug == 0}selected{/if}>关闭</option>
+                    <option value="1" {if $config.debug == 1}selected{/if}>开启</option>
+                </select>
+                <div class="form-help">开启后将记录详细的调试日志</div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="form-group">
+            <button type="submit" class="btn">保存配置</button>
+            <button type="button" class="btn btn-secondary" onclick="testConnection()">测试连接</button>
+            <a href="javascript:history.back();" class="btn btn-secondary" style="text-decoration: none; display: inline-block; margin-left: 10px;">返回</a>
+        </div>
+    </form>
+
+    <script>
+        // 测试连接
+        function testConnection() {
+            var form = document.querySelector('form');
+            var formData = new FormData(form);
+            
+            // 显示加载状态
+            var testBtn = event.target;
+            var originalText = testBtn.textContent;
+            testBtn.textContent = '测试中...';
+            testBtn.disabled = true;
+            
+            fetch('/addon/easypay/admin/config/test', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 1) {
+                    alert('连接测试成功：' + data.msg);
+                } else {
+                    alert('连接测试失败：' + data.msg);
+                }
+            })
+            .catch(error => {
+                alert('连接测试异常：' + error.message);
+            })
+            .finally(() => {
+                testBtn.textContent = originalText;
+                testBtn.disabled = false;
+            });
+        }
+
+        // 表单验证
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var gatewayUrl = document.querySelector('input[name="gateway_url"]').value.trim();
+            var merchantId = document.querySelector('input[name="merchant_id"]').value.trim();
+            var secretKey = document.querySelector('input[name="secret_key"]').value.trim();
+            
+            if (!gatewayUrl) {
+                alert('请输入网关地址');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!merchantId) {
+                alert('请输入商户号');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!secretKey) {
+                alert('请输入商户密钥');
+                e.preventDefault();
+                return false;
+            }
+            
+            // 验证URL格式
+            try {
+                new URL(gatewayUrl);
+            } catch (e) {
+                alert('网关地址格式不正确');
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>
